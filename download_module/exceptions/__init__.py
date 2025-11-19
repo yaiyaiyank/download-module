@@ -4,3 +4,7 @@ class DownloadException(Exception):
 
 class AlreadyDownloadException(Exception):
     """すでにダウンロードしている"""
+
+
+class NotDiffOnly1Error(Exception):
+    """差分が1つではないときのエラー"""
