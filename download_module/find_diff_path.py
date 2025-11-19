@@ -4,10 +4,13 @@ import time_module
 
 # 自作ライブラリ
 from download_module import CACHE_EXTENSION_LIST
+from download_module.exceptions import NotDiffOnly1Error
 
 
 @dataclass
 class FindDiffPath:
+    """フォルダー内のファイルたちの差分を取る形でダウンロードファイルを取得する"""
+
     download_dir: Path | str
     cache_ext_list: list[str] | None = None
 
@@ -42,7 +45,13 @@ class FindDiffPath:
             if not self.pre_file_list != file_list:
                 continue
             # パスの差分を取る
-            file = list(set(file_list) - set(self.pre_file_list))[0]
-            return file
+            diff_file_list = list(set(file_list) - set(self.pre_file_list))
+            if diff_file_list.__len__() != 1:
+                raise NotDiffOnly1Error("差分が1つではないです。")
+            # 継続して利用できるように現在のパスの情報を保持しておく。
+            self.pre_file_list = []
+            self._set_file_list(self.pre_file_list)
+            # 差分結果ファイルを出力
+            return diff_file_list[0]
         else:
             raise TimeoutError("ファイルのダウンロードが検知できませんでした")
