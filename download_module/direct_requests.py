@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 # 自作ライブラリ
 from download_module.exceptions import AlreadyDownloadException
+from download_module.const import VIDEO_EXTENSION_LIST
 
 
 def direct_requests(
@@ -18,7 +19,7 @@ def direct_requests(
     expected_size: int | None = None,
     chunk_size: int = 1024 * 1024,
     wait_time: int | float = 15,
-    use_video_ffmpeg: bool = True,
+    use_video_ffmpeg: bool = False,
     is_404_ok: bool = False,
 ) -> bytes | None:
     # save_pathがNoneのときはバイナリを返す
@@ -44,7 +45,7 @@ def direct_requests(
     total = int(res.headers.get("Content-Length", 0) or (expected_size or 0))
     bar = tqdm(total=total, unit="B", unit_scale=True, unit_divisor=1024, desc=save_path.name, ascii=True, leave=False)
 
-    if use_video_ffmpeg:
+    if use_video_ffmpeg and save_path.suffix in VIDEO_EXTENSION_LIST:
         command = [
             "ffmpeg",
             "-protocol_whitelist",
