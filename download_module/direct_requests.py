@@ -1,6 +1,7 @@
 # 標準ライブラリ
 from pathlib import Path
 from dataclasses import dataclass
+import subprocess
 
 # 外部ライブラリ
 import requests
@@ -17,6 +18,7 @@ def direct_requests(
     expected_size: int | None = None,
     chunk_size: int = 1024 * 1024,
     wait_time: int | float = 15,
+    use_video_ffmpeg: bool = True,
     is_404_ok: bool = False,
 ) -> bytes | None:
     # save_pathがNoneのときはバイナリを返す
@@ -42,12 +44,28 @@ def direct_requests(
     total = int(res.headers.get("Content-Length", 0) or (expected_size or 0))
     bar = tqdm(total=total, unit="B", unit_scale=True, unit_divisor=1024, desc=save_path.name, ascii=True, leave=False)
 
-    with save_path.open("wb") as fh:
-        for chunk in tqdm(res.iter_content(chunk_size)):
-            if chunk:
-                if not chunk:
-                    continue
-                fh.write(chunk)
-                bar.update(len(chunk))
+    if use_video_ffmpeg:
+        command = [
+            "ffmpeg",
+            "-protocol_whitelist",
+            "file,http,https,tcp,tls,crypto",
+            "-i",
+            url,
+            "-c",
+            "copy",
+            "-bsf:a",
+            "aac_adtstoasc",
+            save_path.__str__(),
+        ]
+
+        subprocess.run(command, check=True)
+    else:
+        with save_path.open("wb") as fh:
+            for chunk in tqdm(res.iter_content(chunk_size)):
+                if chunk:
+                    if not chunk:
+                        continue
+                    fh.write(chunk)
+                    bar.update(len(chunk))
 
     bar.close()
