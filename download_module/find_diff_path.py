@@ -21,11 +21,11 @@ class FindDiffPath:
         if self.cache_ext_list is None:
             self.cache_ext_list = CACHE_EXTENSION_LIST
         # ダウンロード前のダウンロードフォルダの中身を取得
-        self.pre_file_list = []
-        self._set_file_list(self.pre_file_list)
+        self.pre_file_list = self._get_file_list()
 
-    def _set_file_list(self, file_list: list[Path]):
+    def _get_file_list(self) -> list[Path]:
         """ダウンロード前のダウンロードフォルダの中身を取得"""
+        file_list = []
         file_iter = self.download_dir.glob("*")
 
         for file in file_iter:
@@ -37,9 +37,10 @@ class FindDiffPath:
                 continue
             file_list.append(file)
 
+        return file_list
+
     def fetch(self, wait_time: int | float | time_module.MutableWaitTime) -> Path:
-        file_list = []
-        self._set_file_list(file_list)
+        file_list = self._get_file_list()
         for _ in time_module.WaitTry(wait_time):
             # ダウンロードフォルダ内の構造が変わるまで待機
             if not self.pre_file_list != file_list:
@@ -49,8 +50,7 @@ class FindDiffPath:
             if diff_file_list.__len__() != 1:
                 raise NotDiffOnly1Error("差分が1つではないです。")
             # 継続して利用できるように現在のパスの情報を保持しておく。
-            self.pre_file_list = []
-            self._set_file_list(self.pre_file_list)
+            self.pre_file_list = self._get_file_list()
             # 差分結果ファイルを出力
             return diff_file_list[0]
         else:
