@@ -40,8 +40,8 @@ class FindDiffPath:
         return file_list
 
     def fetch(self, wait_time: int | float | time_module.MutableWaitTime) -> Path:
-        file_list = self._get_file_list()
         for _ in time_module.WaitTry(wait_time):
+            file_list = self._get_file_list()
             # ダウンロードフォルダ内の構造が変わるまで待機
             if not self.pre_file_list != file_list:
                 continue
