@@ -26,7 +26,7 @@ find_diff_path = download_module.FindDiffPath(download_module.WINDOWS_DOWNLOAD_F
 # ダウンロードフォルダ内に適当にファイルを作ってみる
 (download_module.WINDOWS_DOWNLOAD_FOLDER / "test_texts.txt").write_text("test")
 # 差分を取ってそのファイルが出力される。引数は待機時間[s]
-file = find_diff_path.fetch(10)
+file = find_diff_path.fetch(wait_time=10)
 ```
 
 ```python
