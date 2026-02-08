@@ -11,6 +11,7 @@ from tqdm import tqdm
 # 自作ライブラリ
 from download_module.exceptions import AlreadyDownloadException
 from download_module.const import VIDEO_EXTENSION_LIST
+from logging_module import Log
 
 
 def direct_requests(
@@ -21,7 +22,11 @@ def direct_requests(
     wait_time: int | float = 15,
     use_video_ffmpeg: bool = False,
     is_404_ok: bool = False,
+    log: Log | None = None,
 ) -> bytes | None:
+    # ログ
+    if log is None:
+        log = Log()
     # save_pathがNoneのときはバイナリを返す
     if not save_path is None:
         save_path = Path(save_path)
@@ -32,9 +37,11 @@ def direct_requests(
         res = requests.get(url, stream=True, timeout=wait_time)
         res.raise_for_status()
     except requests.HTTPError:
-        if res.status_code == 404 and not is_404_ok:
-            raise
-        # TODO 522, 520の場合もis_500_okみたいなのやるかも
+        if res.status_code == 404 and is_404_ok:
+            pass
+        else:
+            # TODO 522, 520の場合もis_500_okみたいなのやるかも
+            log.warning(f"url: {url}で、ステータスコード: {res.status_code}")
 
     if save_path is None:
         return res.content
